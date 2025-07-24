@@ -1,4 +1,4 @@
-import { getCoinsNew,getCoinsTopVolume24h, getCoin, getCoinsTopGainers } from "@zoralabs/coins-sdk";
+import { getCoinsNew,getCoinsTopVolume24h, getCoin, getCoinsTopGainers, getCoinsMostValuable } from "@zoralabs/coins-sdk";
 import { base } from "viem/chains";
 import dotenv from "dotenv";
 
@@ -57,6 +57,38 @@ export async function fetchTrendingCoins(count: number = 20) {
   }
 }
 
+//=== Fetches coins with the highest market cap ===//
+
+export async function fetchMostValuableCoins(count: number = 100) {
+  try {
+    const response = await getCoinsMostValuable({ count });
+    const tokens = response.data?.exploreList?.edges?.map((edge: any) => edge.node);
+    if (!tokens?.length) return [];
+
+    const detailedCoins = await Promise.all(
+      tokens.map(async (coin: any) => {
+        const details = await fetchSingleCoin(coin.address);
+        const isFromBaseApp = details?.platformReferrerAddress?.toLowerCase() === BASEAPP_REFERRER_ADDRESS;
+        const percentChange = coin.marketCapDelta24h
+          ? `${parseFloat(coin.marketCapDelta24h).toFixed(2)}%`
+          : "N/A";
+
+        return {
+          ...coin,
+          details,
+          percentChange,
+          isFromBaseApp,
+        };
+      })
+    );
+
+    return detailedCoins;
+  } catch (error) {
+    console.error("Error fetching top gainers:", error);
+    throw new Error("Failed to fetch top gainers");
+  }
+}
+
 export async function fetchSingleCoin(address: string) {
   const response = await getCoin({ address, chain: base.id });
   return response.data?.zora20Token;
@@ -64,9 +96,8 @@ export async function fetchSingleCoin(address: string) {
 
 export async function fetchTopGainers(count: number = 100) {
   try {
+    
     const response = await getCoinsTopGainers({ count });
-
-
     const top20CoinGainers = response.data?.exploreList?.edges?.map((edge: any) => edge.node);
     if (!top20CoinGainers?.length) return [];
     console.log("Fetched top gainers coins unfiltered:", top20CoinGainers.length);

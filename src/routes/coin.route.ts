@@ -2,7 +2,7 @@ import express from "express";
 import { fetchSingleCoin } from "../services/coin.service";
 import { buildTokenSummaryPrompt } from "../services/openai.service";
 import { getCoinSummary } from "../services/openai.service";
-import { fetchNewCoins, fetchTopGainers, fetchTrendingCoins } from "../services/coin.service";
+import { fetchNewCoins, fetchTopGainers, fetchTrendingCoins, fetchMostValuableCoins } from "../services/coin.service";
 const router = express.Router();
 
 router.get("/new", async (req, res) => {
@@ -43,6 +43,17 @@ router.get("/top-gainers", async (req, res) => {
     res.json({ success: true, data: topCoinGainers });
   } catch (err) {
     res.status(500).json({ success: false, message: "Failed to fetch top gainer coins." });
+  }
+});
+
+router.get("/most-valuable", async (req, res) => {
+  const count = parseInt(req.query.count as string) || 100;
+
+  try {
+    const coins = await fetchMostValuableCoins(count);
+    res.json({ success: true, data: coins });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message || "Internal Server Error" });
   }
 });
 
