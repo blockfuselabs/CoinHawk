@@ -1,4 +1,4 @@
-import { getCoinsNew,getCoinsTopVolume24h, getCoin, getCoinsTopGainers } from "@zoralabs/coins-sdk";
+import { getCoinsNew,getCoinsTopVolume24h, getCoin, getCoinsTopGainers, getCoinsMostValuable } from "@zoralabs/coins-sdk";
 import { base } from "viem/chains";
 import dotenv from "dotenv";
 
@@ -59,9 +59,9 @@ export async function fetchTrendingCoins(count: number = 20) {
 
 //=== Fetches coins with the highest market cap ===//
 
-export async function fetchTopGainers(count: number = 3) {
+export async function fetchMostValuableCoins(count: number = 100) {
   try {
-    const response = await getCoinsTopGainers({ count });
+    const response = await getCoinsMostValuable({ count });
     const tokens = response.data?.exploreList?.edges?.map((edge: any) => edge.node);
     if (!tokens?.length) return [];
 
@@ -96,9 +96,8 @@ export async function fetchSingleCoin(address: string) {
 
 export async function fetchTopGainers(count: number = 100) {
   try {
+    
     const response = await getCoinsTopGainers({ count });
-
-
     const top20CoinGainers = response.data?.exploreList?.edges?.map((edge: any) => edge.node);
     if (!top20CoinGainers?.length) return [];
     console.log("Fetched top gainers coins unfiltered:", top20CoinGainers.length);
