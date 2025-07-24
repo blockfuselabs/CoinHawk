@@ -1,5 +1,5 @@
 import express from "express";
-import { fetchNewCoins, fetchTrendingCoins} from "../services/coin.service";
+import { fetchNewCoins, fetchTopGainers, fetchTrendingCoins } from "../services/coin.service";
 
 const router = express.Router();
 
@@ -9,6 +9,16 @@ router.get("/new", async (req, res) => {
     res.json({ success: true, data: coins });
   } catch (err) {
     res.status(500).json({ success: false, message: "Failed to fetch coins." });
+  }
+});
+
+
+router.get("/top-gainers", async (req, res) => {
+  try {
+    const topCoinGainers = await fetchTopGainers();
+    res.json({ success: true, data: topCoinGainers });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to fetch top gainer coins." });
   }
 });
 
