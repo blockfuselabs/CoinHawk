@@ -1,4 +1,4 @@
-import { getCoinsNew, getCoin, getCoinsTopGainers, ExploreResponse } from "@zoralabs/coins-sdk";
+import { getCoinsNew,getCoinsTopVolume24h, getCoin, getCoinsTopGainers } from "@zoralabs/coins-sdk";
 import { base } from "viem/chains";
 import dotenv from "dotenv";
 
@@ -29,6 +29,32 @@ export async function fetchNewCoins(count: number = 10) {
   }));
 
   return detailedCoins;
+} 
+
+//=== Fetches the top trending ===//
+export async function fetchTrendingCoins(count: number = 20) {
+  try {
+    const response = await getCoinsTopVolume24h({ count });
+
+    const tokens = response.data?.exploreList?.edges?.map((edge: any) => edge.node);
+    if (!tokens?.length) return [];
+
+    const detailedCoins = await Promise.all(tokens.map(async (coin: any) => {
+      const details = await fetchSingleCoin(coin.address);
+      const isFromBaseApp = details?.platformReferrerAddress?.toLowerCase() === BASEAPP_REFERRER_ADDRESS;
+
+      return {
+        ...coin,
+        details,
+        isFromBaseApp,
+      };
+    }));
+    return detailedCoins;
+
+  } catch (error) {
+    console.error("Error fetching trending coins:", error);
+    throw new Error("Failed to fetch trending coins");
+  }
 }
 
 export async function fetchSingleCoin(address: string) {
