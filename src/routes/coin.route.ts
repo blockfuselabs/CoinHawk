@@ -37,7 +37,6 @@ catch(error) {
 }
 });
 
-})
 router.get("/top-gainers", async (req, res) => {
   try {
     const topCoinGainers = await fetchTopGainers();
