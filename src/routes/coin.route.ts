@@ -1,5 +1,4 @@
 import express from "express";
-import { fetchNewCoins } from "../services/coin.service";
 import { fetchSingleCoin } from "../services/coin.service";
 import { buildTokenSummaryPrompt } from "../services/openai.service";
 import { getCoinSummary } from "../services/openai.service";
@@ -36,6 +35,7 @@ router.get("/summary", async (req, res) => {
 catch(error) {
    res.status(500).json({ error: 'Failed to generate summary' });
 }
+});
 
 router.get("/top-gainers", async (req, res) => {
   try {
