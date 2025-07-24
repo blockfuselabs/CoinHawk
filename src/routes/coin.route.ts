@@ -1,5 +1,5 @@
 import express from "express";
-import { fetchNewCoins, fetchTrendingCoins, fetchTopMarketCapCoins} from "../services/coin.service";
+import { fetchNewCoins, fetchTrendingCoins, fetchTopGainers} from "../services/coin.service";
 
 const router = express.Router();
 
@@ -25,14 +25,14 @@ router.get("/trending-coins", async (req, res) => {
   }
 });
 
-router.get("/top-market-cap", async (req, res) => {
-  const count = parseInt(req.query.count as string) || 20;
-
+//=== GET /api/coins/top-gainers ===//
+router.get("/top-gainers", async (req, res) => {
   try {
-    const coins = await fetchTopMarketCapCoins(count);
+    const count = parseInt(req.query.count as string) || 20;
+    const coins = await fetchTopGainers(count);
     res.json({ success: true, data: coins });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message || "Internal Server Error" });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message || "Failed to fetch top gainers." });
   }
 });
 

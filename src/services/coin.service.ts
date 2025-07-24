@@ -58,22 +58,24 @@ export async function fetchTrendingCoins(count: number = 20) {
 
 //=== Fetches coins with the highest market cap ===//
 
-export async function fetchTopMarketCapCoins(count: number = 20) {
+export async function fetchTopGainers(count: number = 3) {
   try {
-    const response = await getCoinsNew({ count });
-
+    const response = await getCoinsTopGainers({ count });
     const tokens = response.data?.exploreList?.edges?.map((edge: any) => edge.node);
     if (!tokens?.length) return [];
 
     const detailedCoins = await Promise.all(
       tokens.map(async (coin: any) => {
         const details = await fetchSingleCoin(coin.address);
-        const isFromBaseApp =
-          details?.platformReferrerAddress?.toLowerCase() === BASEAPP_REFERRER_ADDRESS;
+        const isFromBaseApp = details?.platformReferrerAddress?.toLowerCase() === BASEAPP_REFERRER_ADDRESS;
+        const percentChange = coin.marketCapDelta24h
+          ? `${parseFloat(coin.marketCapDelta24h).toFixed(2)}%`
+          : "N/A";
 
         return {
           ...coin,
           details,
+          percentChange,
           isFromBaseApp,
         };
       })
@@ -81,8 +83,8 @@ export async function fetchTopMarketCapCoins(count: number = 20) {
 
     return detailedCoins;
   } catch (error) {
-    console.error("Error fetching top market cap coins:", error);
-    throw new Error("Failed to fetch top market cap coins");
+    console.error("Error fetching top gainers:", error);
+    throw new Error("Failed to fetch top gainers");
   }
 }
 
