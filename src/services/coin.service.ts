@@ -25,7 +25,7 @@ export async function fetchNewCoins(count: number = 10) {
       details,
       isFromBaseApp,
     };
-    
+
   }));
 
   return detailedCoins;
@@ -36,17 +36,26 @@ export async function fetchSingleCoin(address: string) {
   return response.data?.zora20Token;
 }
 
-export async function fetchTopGainers(count: number = 20) {
+export async function fetchTopGainers(count: number = 100) {
   try {
     const response = await getCoinsTopGainers({ count });
 
-    console.log("Fetched top gainers coins:", response.data?.exploreList?.edges?.length);
 
     const top20CoinGainers = response.data?.exploreList?.edges?.map((edge: any) => edge.node);
     if (!top20CoinGainers?.length) return [];
-    
-    
-    return top20CoinGainers;
+    console.log("Fetched top gainers coins unfiltered:", top20CoinGainers.length);
+
+     const filteredCoinGainers = BASEAPP_REFERRER_ADDRESS
+      ? top20CoinGainers.filter(
+          (coin: any) =>
+            coin.platformReferrerAddress?.toLowerCase() === BASEAPP_REFERRER_ADDRESS.toLowerCase()
+        )
+      : [];
+
+      console.log("Fetched top gainers coins filtered from base app:", filteredCoinGainers.length);
+
+    return filteredCoinGainers;
+
 
   } catch (error) {
     console.error("Error fetching top gainers coins:", error);
