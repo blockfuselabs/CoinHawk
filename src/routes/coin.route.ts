@@ -14,16 +14,30 @@ router.get("/new", async (req, res) => {
   }
 });
 
+router.get("/:address", async (req, res) => {
+  try {
+    const { address } = req.params;
+    if (!address) {
+      return res.status(400).json({ success: false, message: "Coin address is required" });
+    }
+    const coinDetails = await fetchSingleCoin(address);
+    if (!coinDetails) {
+      return res.status(404).json({ success: false, message: "Coin not found" });
+    }
+    res.json({ success: true, data: coinDetails });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to fetch coins." });
+  }
+});
+
 router.get("/summary", async (req, res) => {
   const {coinAddress} =  req.query;
   
   if (!coinAddress || typeof coinAddress !== 'string') {
-    return res.status(400).json({ error: 'coinAddress is required' });
+    return res.status(400).json({ success: false, message: "Coin address is required" });
   }
 
   try{
-
-  
   const coinsDetails = await fetchSingleCoin(coinAddress);
   const extractCoinDetails = buildTokenSummaryPrompt(coinsDetails);
   const coinSummary = await getCoinSummary(extractCoinDetails);
@@ -33,7 +47,7 @@ router.get("/summary", async (req, res) => {
   });
 }
 catch(error) {
-   res.status(500).json({ error: 'Failed to generate summary' });
+   res.status(500).json({ success: false, message: "Failed to generate summary" });
 }
 });
 
