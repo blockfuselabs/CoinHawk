@@ -14,22 +14,6 @@ router.get("/new", async (req, res) => {
   }
 });
 
-router.get("/:address", async (req, res) => {
-  try {
-    const { address } = req.params;
-    if (!address) {
-      return res.status(400).json({ success: false, message: "Coin address is required" });
-    }
-    const coinDetails = await fetchSingleCoin(address);
-    if (!coinDetails) {
-      return res.status(404).json({ success: false, message: "Coin not found" });
-    }
-    res.json({ success: true, data: coinDetails });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to fetch coins." });
-  }
-});
-
 router.get("/summary", async (req, res) => {
   const {coinAddress} =  req.query;
   
@@ -62,7 +46,7 @@ router.get("/top-gainers", async (req, res) => {
 
 router.get("/most-valuable", async (req, res) => {
   const count = parseInt(req.query.count as string) || 100;
-
+  
   try {
     const coins = await fetchMostValuableCoins(count);
     res.json({ success: true, data: coins });
@@ -78,9 +62,26 @@ router.get("/trending-coins", async (req, res) => {
   try {
     const coins = await fetchTrendingCoins(count);
     res.json({ success: true, data: coins });
-
+    
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message || "Internal Server Error" });
   }
 });
+
+router.get("/:address", async (req, res) => {
+  try {
+    const { address } = req.params;
+    if (!address) {
+      return res.status(400).json({ success: false, message: "Coin address is required" });
+    }
+    const coinDetails = await fetchSingleCoin(address);
+    if (!coinDetails) {
+      return res.status(404).json({ success: false, message: "Coin not found" });
+    }
+    res.json({ success: true, data: coinDetails });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to fetch coins." });
+  }
+});
+
 export default router;
