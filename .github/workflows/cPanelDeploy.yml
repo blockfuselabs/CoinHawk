@@ -27,18 +27,18 @@ jobs:
           node-version: '22'
 
       - name: 🔑 Setup environment variables
-        working-directory: backend
+        working-directory: ./
         run: |
           echo "PORT=5000" >> .env
           echo "BASEAPP_REFERRER_ADDRESS=${{ vars.BASEAPP_REFERRER_ADDRESS }}" >> .env
           echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
       
       - name: 📦 Install dependencies
-        working-directory: backend
+        working-directory: ./
         run: npm install
       
       - name: 🔨 Build the Typescript app
-        working-directory: backend
+        working-directory: ./
         run: npm run build
       
       - name: 📂 Sync folders and files to the server
