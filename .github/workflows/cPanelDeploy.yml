@@ -3,7 +3,8 @@ name: Deploy CoinHawk Backend to cPanel
 on:
   push:
     branches:
-      - [main, cors-fix]
+      - main
+      - cors-fix
 
 jobs:
   FTP-Deploy-Action:
