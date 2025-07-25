@@ -1,0 +1,51 @@
+name: Deploy CoinHawk Backend to cPanel
+
+on:
+  push:
+    branches:
+      - main
+      - cors-fix
+
+jobs:
+  FTP-Deploy-Action:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      
+      - name: 📂 Navigate to directory
+        working-directory: ./
+        run: echo "Switched to the directory"
+      
+      - name: 🛠 Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: 🔑 Setup environment variables
+        working-directory: ./
+        run: |
+          echo "PORT=5000" >> .env
+          echo "BASEAPP_REFERRER_ADDRESS=${{ vars.BASEAPP_REFERRER_ADDRESS }}" >> .env
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+      
+      - name: 📦 Install dependencies
+        working-directory: ./
+        run: npm install
+      
+      - name: 🔨 Build the Typescript app
+        working-directory: ./
+        run: npm run build
+      
+      - name: 📂 Sync folders and files to the server
+        uses: SamKirkland/FTP-Deploy-Action@4.3.3
+        with:
+          server: ${{ vars.FTP_SERVER }}
+          username: ${{ vars.FTP_USERNAME }}
+          password: ${{ vars.FTP_PASSWORD }}
+          server-dir: coinhawk-api.blockfuselabs.com/
+          local-dir: './dist/'
