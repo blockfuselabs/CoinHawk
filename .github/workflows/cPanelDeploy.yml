@@ -21,6 +21,26 @@ jobs:
         working-directory: ./
         run: echo "Switched to the directory"
       
+      - name: 🛠 Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: 🔑 Setup environment variables
+        working-directory: backend
+        run: |
+          echo "PORT=5000" >> .env
+          echo "BASEAPP_REFERRER_ADDRESS=${{ vars.BASEAPP_REFERRER_ADDRESS }}" >> .env
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+      
+      - name: 📦 Install dependencies
+        working-directory: backend
+        run: npm install
+      
+      - name: 🔨 Build the Typescript app
+        working-directory: backend
+        run: npm run build
+      
       - name: 📂 Sync folders and files to the server
         uses: SamKirkland/FTP-Deploy-Action@4.3.3
         with:
@@ -28,4 +48,4 @@ jobs:
           username: ${{ vars.FTP_USERNAME }}
           password: ${{ vars.FTP_PASSWORD }}
           server-dir: coinhawk-api.blockfuselabs.com/
-          local-dir: './'
+          local-dir: './dist/'

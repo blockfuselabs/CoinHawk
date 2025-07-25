@@ -38,17 +38,17 @@ router.get("/summary", async (req, res) => {
   }
 
   try{
-  const coinsDetails = await fetchSingleCoin(coinAddress);
-  const extractCoinDetails = buildTokenSummaryPrompt(coinsDetails);
-  const coinSummary = await getCoinSummary(extractCoinDetails);
-  res.status(200).json({
-    success: true,
-    data: coinSummary
-  });
-}
-catch(error) {
-   res.status(500).json({ success: false, message: "Failed to generate summary" });
-}
+    const coinsDetails = await fetchSingleCoin(coinAddress);
+    const extractCoinDetails = buildTokenSummaryPrompt(coinsDetails);
+    const coinSummary = await getCoinSummary(extractCoinDetails);
+    res.status(200).json({
+      success: true,
+      data: coinSummary
+    });
+  }
+  catch(error) {
+    res.status(500).json({ success: false, message: "Failed to generate summary" });
+  }
 });
 
 router.get("/top-gainers", async (req, res) => {
