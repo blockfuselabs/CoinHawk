@@ -14,6 +14,60 @@ router.get("/new", async (req, res) => {
   }
 });
 
+router.get("/summary", async (req, res) => {
+  const {coinAddress} =  req.query;
+  
+  if (!coinAddress || typeof coinAddress !== 'string') {
+    return res.status(400).json({ success: false, message: "Coin address is required" });
+  }
+
+  try{
+    const coinsDetails = await fetchSingleCoin(coinAddress);
+    const extractCoinDetails = buildTokenSummaryPrompt(coinsDetails);
+    const coinSummary = await getCoinSummary(extractCoinDetails);
+    res.status(200).json({
+      success: true,
+      data: coinSummary
+    });
+  }
+  catch(error) {
+    res.status(500).json({ success: false, message: "Failed to generate summary" });
+  }
+});
+
+router.get("/top-gainers", async (req, res) => {
+  try {
+    const topCoinGainers = await fetchTopGainers();
+    res.json({ success: true, data: topCoinGainers });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to fetch top gainer coins." });
+  }
+});
+
+router.get("/most-valuable", async (req, res) => {
+  const count = parseInt(req.query.count as string) || 100;
+  
+  try {
+    const coins = await fetchMostValuableCoins(count);
+    res.json({ success: true, data: coins });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message || "Internal Server Error" });
+  }
+});
+
+//=== GET /api/trending-coins?count=20 ===//
+router.get("/trending-coins", async (req, res) => {
+  const count = parseInt(req.query.count as string) || 20;
+
+  try {
+    const coins = await fetchTrendingCoins(count);
+    res.json({ success: true, data: coins });
+    
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message || "Internal Server Error" });
+  }
+});
+
 router.get("/:address", async (req, res) => {
   try {
     const { address } = req.params;
@@ -30,57 +84,4 @@ router.get("/:address", async (req, res) => {
   }
 });
 
-router.get("/summary", async (req, res) => {
-  const {coinAddress} =  req.query;
-  
-  if (!coinAddress || typeof coinAddress !== 'string') {
-    return res.status(400).json({ success: false, message: "Coin address is required" });
-  }
-
-  try{
-  const coinsDetails = await fetchSingleCoin(coinAddress);
-  const extractCoinDetails = buildTokenSummaryPrompt(coinsDetails);
-  const coinSummary = await getCoinSummary(extractCoinDetails);
-  res.status(200).json({
-    success: true,
-    data: coinSummary
-  });
-}
-catch(error) {
-   res.status(500).json({ success: false, message: "Failed to generate summary" });
-}
-});
-
-router.get("/top-gainers", async (req, res) => {
-  try {
-    const topCoinGainers = await fetchTopGainers();
-    res.json({ success: true, data: topCoinGainers });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to fetch top gainer coins." });
-  }
-});
-
-router.get("/most-valuable", async (req, res) => {
-  const count = parseInt(req.query.count as string) || 100;
-
-  try {
-    const coins = await fetchMostValuableCoins(count);
-    res.json({ success: true, data: coins });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message || "Internal Server Error" });
-  }
-});
-
-//=== GET /api/trending-coins?count=20 ===//
-router.get("/trending-coins", async (req, res) => {
-  const count = parseInt(req.query.count as string) || 20;
-
-  try {
-    const coins = await fetchTrendingCoins(count);
-    res.json({ success: true, data: coins });
-
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message || "Internal Server Error" });
-  }
-});
 export default router;
