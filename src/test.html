@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WebSocket Test</title>
+  </head>
+  <body>
+    <h2>CoinHawk Chat Test</h2>
+    <textarea id="tokenSummary" placeholder="Paste token summary..." rows="6" cols="50"></textarea><br>
+    <input type="text" id="question" placeholder="Ask a question" size="50" />
+    <button onclick="send()">Send</button>
+    <pre id="response"></pre>
+
+    <script>
+      const ws = new WebSocket("ws://localhost:3000"); // Change port if needed
+
+      ws.onmessage = (event) => {
+        document.getElementById("response").textContent = "Response:\n" + event.data;
+      };
+
+      function send() {
+        const summary = document.getElementById("tokenSummary").value;
+        const question = document.getElementById("question").value;
+
+        ws.send(JSON.stringify({
+          tokenSummary: summary,
+          userQuestion: question
+        }));
+      }
+    </script>
+  </body>
+</html>

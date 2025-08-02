@@ -11,14 +11,16 @@ export async  function getCoinSummary(coinDetails: any): Promise<string>{
                 role : "system",
                 content: ` You are a crypto token analyst assistant. Your job is to provide clear, concise summaries of cryptocurrency tokens
                 
-                GUIDELINES:
-                - Keep summaries between 3-5 sentences
-                - Use simple, non-technical language
-                - Focus on the most important details: what the token is, its market performance, and key metrics
-                - Highlight any red flags or notable features
-                - Be objective and informative, not promotional
-                - If market cap or volume is very low, mention potential risks
-                - If the token is very new, note this as important context`
+               
+                
+                🔍 YOUR JOB:
+            - Give a 3–5 sentence summary.
+            - Use plain, beginner-friendly language.
+            - Include major red flags (missing description, low volume, low holder count, etc.).
+            - Do NOT invent facts — comment only on what's above.
+            - If some data is missing (description, roadmap, team, utility, etc.), **say so clearly**.
+
+            -Output only the summary.`
             },
             {
             role: "user",
@@ -38,10 +40,53 @@ export async  function getCoinSummary(coinDetails: any): Promise<string>{
     }
    
 }
-    
+  
+export async function getAnswerFromSummary(tokenSummary: string, userQuestion: string): Promise<string> {
+  console.log("Chat APi", tokenSummary)
+  console.log("userQuestion", userQuestion)
+  try {
+    const response = await assistant.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: `
+        -You are a crypto assistant. You will receive a summary of a token and a user's question.
+         -Never mention the word “summary” or refer to the existence of a summary. The user does not need to know about it. Write as if you’re directly analyzing raw data.
+
+      ONLY answer using the provided summary. If information is missing, 
+      clearly explain *which* details are missing (e.g., token utility, team info, roadmap) 
+      instead of saying "not enough info".
+
+      When possible, explain what could happen *based on the current facts*, 
+      using logical reasoning and common industry knowledge — but don't speculate wildly.
+
+      Respond in a helpful, direct tone.
+`
+        },
+        {
+          role: "user",
+          content: `Here is the token summary:\n\n${tokenSummary}`
+        },
+        {
+          role: "user",
+          content: `User Question: ${userQuestion}`
+        }
+      ],
+      model: "gpt-4o",
+      temperature: 0.3,
+      max_tokens: 300,
+    });
+
+    return response.choices[0].message?.content ?? "No answer generated.";
+  } catch (error) {
+    console.error("Error getting answer from summary:", error);
+    return "Error: Failed to get an answer from the summary.";
+  }
+}
+
 
 export function buildTokenSummaryPrompt(data: any): string {
-  const {
+    const {
     name,
     symbol,
     description,
@@ -53,28 +98,34 @@ export function buildTokenSummaryPrompt(data: any): string {
     creatorAddress,
     creatorProfile,
     poolCurrencyToken,
-    tokenPrice
+    tokenPrice,
+    tokenUri,
+    mediaContent,
+    creatorEarnings,
   } = data;
-
   const readableDate = new Date(createdAt).toDateString();
-
+  const creator = creatorProfile?.handle || creatorAddress;
+  const chainName = getChainName(data.chainId);
+  const hasMedia = mediaContent?.originalUri ? "Yes" : "No";
+  const tokenDesc = description?.trim() || "No description provided.";
+  const earnings = creatorEarnings?.[0]?.amountUsd || "N/A";
   return `
-Analyze this cryptocurrency token:
-
-Name: ${name}
-Symbol: ${symbol}
-Description: ${description || "No description provided."}
-Total Supply: ${totalSupply}
-Token Price (in USDC): ${tokenPrice?.priceInUsdc || "Unknown"}
-Market Cap: $${marketCap}
-24h Volume: ${volume24h}
-Created On: ${readableDate}
-Chain ID: ${data.chainId} (${getChainName(data.chainId)})
-Unique Holders: ${uniqueHolders}
-Creator: ${creatorProfile?.handle || creatorAddress}
-Pool Pair: ${symbol} / ${poolCurrencyToken?.name || "unknown"}
-
-Provide a concise summary explaining what this token is, its current market status, and any important details beginners should know..
+TOKEN DETAILS:
+- Name: ${name}
+- Symbol: ${symbol}
+- Description: ${tokenDesc}
+- Total Supply: ${totalSupply}
+- Token Price (in USDC): ${tokenPrice?.priceInUsdc || "Unknown"}
+- Market Cap: $${marketCap}
+- 24h Volume: ${volume24h}
+- Created On: ${readableDate}
+- Chain ID: ${data.chainId} (${chainName})
+- Unique Holders: ${uniqueHolders}
+- Creator: ${creator}
+- Creator Earnings: $${earnings}
+- Pool Pair: ${symbol} / ${poolCurrencyToken?.name || "unknown"}
+- Token URI: ${tokenUri}
+- Has Media Content: ${hasMedia}
 `;
 }
 
