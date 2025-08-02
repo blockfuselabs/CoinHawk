@@ -5,20 +5,21 @@ import json
 import time
 
 def on_message(ws, message):
-    print(f"\n🟢 Received: {message}\n")
+    print(f"\n Received: {message}\n")
 
 def on_error(ws, error):
-    print(f"\n🔴 Error: {error}\n")
+    print(f"\n Error: {error}\n")
 
 def on_close(ws, close_status_code, close_msg):
-    print("\n🔵 Connection closed\n")
+    print("\n Connection closed\n")
 
 def on_open(ws):
     def run():
         while True:
             question = input("Ask a question: ")
+            tokenAddress = input("Token Address: ")
             data = {
-                "tokenAddress": "0x2272ed9c92024da2589b3f21afd39aaf0690d88e",
+                "tokenAddress": tokenAddress,
                 "userMessage": question
             }
             ws.send(json.dumps(data))
