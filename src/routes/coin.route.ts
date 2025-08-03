@@ -86,9 +86,9 @@ router.get("/:address", async (req, res) => {
 });
 
 router.post("/chat", async (req, res) => {
-  const { tokenAddress, userMessage } = req.body;
+  const { coinAddress, userQuestion } = req.body;
 
-  if (!tokenAddress || !userMessage) {
+  if (!coinAddress || !userQuestion) {
     return res.status(400).json({
       success: false,
       error: "Token address and user message are required",
@@ -96,11 +96,11 @@ router.post("/chat", async (req, res) => {
   }
 
   try {
-    const chat = await handleCoinChat(tokenAddress, userMessage);
+    const message = await handleCoinChat(coinAddress, userQuestion);
 
     res.status(200).json({
       success: true,
-      data: chat,
+      data: message,
     });
   } catch (err: any) {
     console.error("Chat endpoint error:", err.message);
