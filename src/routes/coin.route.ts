@@ -69,22 +69,6 @@ router.get("/trending-coins", async (req, res) => {
   }
 });
 
-router.get("/:address", async (req, res) => {
-  try {
-    const { address } = req.params;
-    if (!address) {
-      return res.status(400).json({ success: false, message: "Coin address is required" });
-    }
-    const coinDetails = await fetchSingleCoin(address);
-    if (!coinDetails) {
-      return res.status(404).json({ success: false, message: "Coin not found" });
-    }
-    res.json({ success: true, data: coinDetails });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to fetch coins." });
-  }
-});
-
 router.post("/chat", async (req, res) => {
   const { coinAddress, userQuestion } = req.body;
 
@@ -111,5 +95,20 @@ router.post("/chat", async (req, res) => {
   }
 });
 
+router.get("/:address", async (req, res) => {
+  try {
+    const { address } = req.params;
+    if (!address) {
+      return res.status(400).json({ success: false, message: "Coin address is required" });
+    }
+    const coinDetails = await fetchSingleCoin(address);
+    if (!coinDetails) {
+      return res.status(404).json({ success: false, message: "Coin not found" });
+    }
+    res.json({ success: true, data: coinDetails });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to fetch coins." });
+  }
+});
 
 export default router;
