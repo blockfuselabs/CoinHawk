@@ -1,5 +1,7 @@
 import OpenAI from "openai";
 import  dotenv from "dotenv"
+import cache from "../utils/reusableCache";
+import { fetchSingleCoin } from "./coin.service";
 dotenv.config()
 const assistant  = new OpenAI()
 
@@ -137,3 +139,22 @@ function getChainName(chainId: number): string {
     default: return "Unknown Chain";
   }
 }
+
+
+export async function handleCoinChat (tokenAddress: string, userMessage: string) {
+  if (!tokenAddress || !userMessage) {
+    throw new Error("Token address and user message are required");
+  }
+
+  let coinSummary = cache.get(tokenAddress);
+
+  if (!coinSummary) {
+    const coinDetails = await fetchSingleCoin(tokenAddress);
+    const summaryPrompt = buildTokenSummaryPrompt(coinDetails);
+    cache.set(tokenAddress, summaryPrompt);
+    coinSummary = summaryPrompt;
+  }
+
+  const chat = await getAnswerFromSummary(coinSummary as string, userMessage);
+  return chat;
+};

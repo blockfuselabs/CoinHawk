@@ -3,6 +3,7 @@ import { fetchSingleCoin } from "../services/coin.service";
 import { buildTokenSummaryPrompt } from "../services/openai.service";
 import { getCoinSummary } from "../services/openai.service";
 import { fetchNewCoins, fetchTopGainers, fetchTrendingCoins, fetchMostValuableCoins } from "../services/coin.service";
+import { handleCoinChat } from "../services/openai.service";
 const router = express.Router();
 
 router.get("/new", async (req, res) => {
@@ -65,6 +66,32 @@ router.get("/trending-coins", async (req, res) => {
     
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message || "Internal Server Error" });
+  }
+});
+
+router.post("/chat", async (req, res) => {
+  const { coinAddress, userQuestion } = req.body;
+
+  if (!coinAddress || !userQuestion) {
+    return res.status(400).json({
+      success: false,
+      error: "Token address and user message are required",
+    });
+  }
+
+  try {
+    const message = await handleCoinChat(coinAddress, userQuestion);
+
+    res.status(200).json({
+      success: true,
+      data: message,
+    });
+  } catch (err: any) {
+    console.error("Chat endpoint error:", err.message);
+    res.status(500).json({
+      success: false,
+      error: err.message || "Internal server error",
+    });
   }
 });
 
