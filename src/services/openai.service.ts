@@ -53,7 +53,7 @@ export async function getAnswerFromSummary(tokenSummary: string, userQuestion: s
           role: "system",
           content: `
         -You are a crypto assistant. You will receive a summary of a token and a user's question.
-         -Never mention the word “summary” or refer to the existence of a summary. The user does not need to know about it. Write as if you’re directly analyzing raw data.
+         -Never mention the word "summary" or refer to the existence of a summary. The user does not need to know about it. Write as if you're directly analyzing raw data.
 
       ONLY answer using the provided summary. If information is missing, 
       clearly explain *which* details are missing (e.g., token utility, team info, roadmap) 

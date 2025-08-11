@@ -6,14 +6,33 @@ dotenv.config();
 
 const BASEAPP_REFERRER_ADDRESS = process.env.BASEAPP_REFERRER_ADDRESS?.toLowerCase();
 
+// Helper function to calculate pagination parameters
+function calculatePaginationParams(count: number = 10, page: number = 1) {
+  const limit = Math.min(Math.max(count, 1), 100); // Ensure count is between 1 and 100
+  return { limit };
+}
 
-export async function fetchNewCoins(count: number = 10) {
-  const response = await getCoinsNew({ count });
+export async function fetchNewCoins(count: number = 10, page: number = 1) {
+  const { limit } = calculatePaginationParams(count, page);
+  
+  const response = await getCoinsNew({ count: limit });
 
   console.log("Fetched new coins:", response.data?.exploreList?.edges?.length);
 
   const tokens = response.data?.exploreList?.edges?.map((edge: any) => edge.node);
-  if (!tokens?.length) return [];
+  if (!tokens?.length) {
+    return {
+      coins: [],
+      pagination: {
+        page,
+        count: limit,
+        total: 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
+        cursor: undefined
+      }
+    };
+  }
 
   const detailedCoins = await Promise.all(tokens.map(async (coin: any) => {
     const details = await fetchSingleCoin(coin.address);
@@ -28,16 +47,40 @@ export async function fetchNewCoins(count: number = 10) {
 
   }));
 
-  return detailedCoins;
+  return {
+    coins: detailedCoins,
+    pagination: {
+      page,
+      count: limit,
+      total: tokens.length,
+      hasNextPage: response.data?.exploreList?.pageInfo?.hasNextPage || false,
+      hasPreviousPage: page > 1,
+      cursor: response.data?.exploreList?.pageInfo?.endCursor
+    }
+  };
 } 
 
 //=== Fetches the top trending ===//
-export async function fetchTrendingCoins(count: number = 20) {
+export async function fetchTrendingCoins(count: number = 20, page: number = 1) {
   try {
-    const response = await getCoinsTopVolume24h({ count });
+    const { limit } = calculatePaginationParams(count, page);
+    
+    const response = await getCoinsTopVolume24h({ count: limit });
 
     const tokens = response.data?.exploreList?.edges?.map((edge: any) => edge.node);
-    if (!tokens?.length) return [];
+    if (!tokens?.length) {
+      return {
+        coins: [],
+        pagination: {
+          page,
+          count: limit,
+          total: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+          cursor: undefined
+        }
+      };
+    }
 
     const detailedCoins = await Promise.all(tokens.map(async (coin: any) => {
       const details = await fetchSingleCoin(coin.address);
@@ -49,7 +92,18 @@ export async function fetchTrendingCoins(count: number = 20) {
         isFromBaseApp,
       };
     }));
-    return detailedCoins;
+    
+    return {
+      coins: detailedCoins,
+      pagination: {
+        page,
+        count: limit,
+        total: tokens.length,
+        hasNextPage: response.data?.exploreList?.pageInfo?.hasNextPage || false,
+        hasPreviousPage: page > 1,
+        cursor: response.data?.exploreList?.pageInfo?.endCursor
+      }
+    };
 
   } catch (error) {
     console.error("Error fetching trending coins:", error);
@@ -59,11 +113,26 @@ export async function fetchTrendingCoins(count: number = 20) {
 
 //=== Fetches coins with the highest market cap ===//
 
-export async function fetchMostValuableCoins(count: number = 100) {
+export async function fetchMostValuableCoins(count: number = 100, page: number = 1) {
   try {
-    const response = await getCoinsMostValuable({ count });
+    const { limit } = calculatePaginationParams(count, page);
+    
+    const response = await getCoinsMostValuable({ count: limit });
+    
     const tokens = response.data?.exploreList?.edges?.map((edge: any) => edge.node);
-    if (!tokens?.length) return [];
+    if (!tokens?.length) {
+      return {
+        coins: [],
+        pagination: {
+          page,
+          count: limit,
+          total: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+          cursor: undefined
+        }
+      };
+    }
 
     const detailedCoins = await Promise.all(
       tokens.map(async (coin: any) => {
@@ -82,7 +151,18 @@ export async function fetchMostValuableCoins(count: number = 100) {
       })
     );
 
-    return detailedCoins;
+    return {
+      coins: detailedCoins,
+      pagination: {
+        page,
+        count: limit,
+        total: tokens.length,
+        hasNextPage: response.data?.exploreList?.pageInfo?.hasNextPage || false,
+        hasPreviousPage: page > 1,
+        cursor: response.data?.exploreList?.pageInfo?.endCursor
+      }
+    };
+
   } catch (error) {
     console.error("Error fetching top gainers:", error);
     throw new Error("Failed to fetch top gainers");
@@ -94,12 +174,27 @@ export async function fetchSingleCoin(address: string) {
   return response.data?.zora20Token;
 }
 
-export async function fetchTopGainers(count: number = 100) {
+export async function fetchTopGainers(count: number = 100, page: number = 1) {
   try {
+    const { limit } = calculatePaginationParams(count, page);
     
-    const response = await getCoinsTopGainers({ count });
+    const response = await getCoinsTopGainers({ count: limit });
+    
     const top20CoinGainers = response.data?.exploreList?.edges?.map((edge: any) => edge.node);
-    if (!top20CoinGainers?.length) return [];
+    if (!top20CoinGainers?.length) {
+      return {
+        coins: [],
+        pagination: {
+          page,
+          count: limit,
+          total: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+          cursor: undefined
+        }
+      };
+    }
+
     console.log("Fetched top gainers coins unfiltered:", top20CoinGainers.length);
 
      const filteredCoinGainers = BASEAPP_REFERRER_ADDRESS
@@ -111,8 +206,17 @@ export async function fetchTopGainers(count: number = 100) {
 
       console.log("Fetched top gainers coins filtered from base app:", filteredCoinGainers.length);
 
-    return filteredCoinGainers;
-
+    return {
+      coins: filteredCoinGainers,
+      pagination: {
+        page,
+        count: limit,
+        total: filteredCoinGainers.length,
+        hasNextPage: response.data?.exploreList?.pageInfo?.hasNextPage || false,
+        hasPreviousPage: page > 1,
+        cursor: response.data?.exploreList?.pageInfo?.endCursor
+      }
+    };
 
   } catch (error) {
     console.error("Error fetching top gainers coins:", error);
