@@ -8,8 +8,11 @@ const router = express.Router();
 
 router.get("/new", async (req, res) => {
   try {
-    const coins = await fetchNewCoins();
-    res.json({ success: true, data: coins });
+    const count = parseInt(req.query.count as string) || 10;
+    const page = parseInt(req.query.page as string) || 1;
+    
+    const result = await fetchNewCoins(count, page);
+    res.json({ success: true, data: result.coins, pagination: result.pagination });
   } catch (err) {
     res.status(500).json({ success: false, message: "Failed to fetch coins." });
   }
@@ -38,31 +41,36 @@ router.get("/summary", async (req, res) => {
 
 router.get("/top-gainers", async (req, res) => {
   try {
-    const topCoinGainers = await fetchTopGainers();
-    res.json({ success: true, data: topCoinGainers });
+    const count = parseInt(req.query.count as string) || 10;
+    const page = parseInt(req.query.page as string) || 1;
+    
+    const result = await fetchTopGainers(count, page);
+    res.json({ success: true, data: result.coins, pagination: result.pagination });
   } catch (err) {
     res.status(500).json({ success: false, message: "Failed to fetch top gainer coins." });
   }
 });
 
 router.get("/most-valuable", async (req, res) => {
-  const count = parseInt(req.query.count as string) || 100;
+  const count = parseInt(req.query.count as string) || 10;
+  const page = parseInt(req.query.page as string) || 1;
   
   try {
-    const coins = await fetchMostValuableCoins(count);
-    res.json({ success: true, data: coins });
+    const result = await fetchMostValuableCoins(count, page);
+    res.json({ success: true, data: result.coins, pagination: result.pagination });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message || "Internal Server Error" });
   }
 });
 
-//=== GET /api/trending-coins?count=20 ===//
+//=== GET /api/trending-coins?count=20&page=1 ===//
 router.get("/trending-coins", async (req, res) => {
-  const count = parseInt(req.query.count as string) || 20;
+  const count = parseInt(req.query.count as string) || 10;
+  const page = parseInt(req.query.page as string) || 1;
 
   try {
-    const coins = await fetchTrendingCoins(count);
-    res.json({ success: true, data: coins });
+    const result = await fetchTrendingCoins(count, page);
+    res.json({ success: true, data: result.coins, pagination: result.pagination });
     
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message || "Internal Server Error" });
